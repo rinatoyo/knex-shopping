@@ -10,16 +10,16 @@ router.put("/:user_id/forgot-password", (req, res) => {
       if (results.rowCount === 0) {
         throw new Error();
       } else {
-        db.raw("UPDATE users SET password = ? WHERE id = ? RETURNING *", [
-          req.body.password,
-          req.params.user_id
-        ]).then(result => {
-          res.status(200).json({ message: "New password created!" });
-        });
+        return db.raw(
+          "UPDATE users SET password = ? WHERE id = ? RETURNING *",
+          [req.body.password, req.params.user_id]
+        );
       }
     })
+    .then(result => {
+      res.status(200).json({ message: "New password created!" });
+    })
     .catch(err => {
-      console.log(err);
       res.status(404).json({ message: "User not found" });
     });
 });
@@ -30,14 +30,15 @@ router.delete("/:user_id", (req, res) => {
       if (results.rowCount === 0) {
         throw new Error();
       } else {
-        db.raw("DELETE FROM users WHERE id = ? RETURNING *", [
+        return db.raw("DELETE FROM users WHERE id = ? RETURNING *", [
           req.params.user_id
-        ]).then(results => {
-          res.status(200).json({
-            message: `User id: ${req.params.user_id} successfully deleted`
-          });
-        });
+        ]);
       }
+    })
+    .then(results => {
+      res.status(200).json({
+        message: `User id: ${req.params.user_id} successfully deleted`
+      });
     })
     .catch(err => {
       res.status(404).json({ message: "User ID not found" });
@@ -54,7 +55,6 @@ router.get("/:user_id", (req, res) => {
       }
     })
     .catch(err => {
-      console.log(err);
       res.status(404).json({ message: "User not found" });
     });
 });
@@ -71,7 +71,6 @@ router.post("/login", (req, res) => {
       }
     })
     .catch(err => {
-      console.log(err);
       res.status(500).json({ message: "Error" });
     });
 });
@@ -82,14 +81,16 @@ router.post("/register", (req, res) => {
       if (results.rowCount !== 0) {
         throw new Error();
       } else {
-        db.raw("INSERT INTO users (email, password) VALUES (?,?) RETURNING *", [
-          req.body.email,
-          req.body.password
-        ]).then(results => {
-          res.status(200).json({ message: "success" });
-        });
+        return db.raw(
+          "INSERT INTO users (email, password) VALUES (?,?) RETURNING *",
+          [req.body.email, req.body.password]
+        );
       }
     })
+    .then(results => {
+      res.status(200).json({ message: "success" });
+    })
+
     .catch(err => {
       res.status(500).json({ message: "User already exists" });
     });
